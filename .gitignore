@@ -1,0 +1,7 @@
+.idea
+*.exe
+*.png
+*.log
+/src/golang.org/
+/pkg
+/bin
