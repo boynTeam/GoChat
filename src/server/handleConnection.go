@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	. "server/internal"
 	"time"
 )
 
@@ -21,9 +22,9 @@ func handleConn(conn net.Conn) {
 	go clientWriter(conn, ch)
 
 	who := conn.RemoteAddr().String()
-	messages <- who + " has arrived"
-	cli := client{ip: who, name: who, channel: ch, conn: conn, lastSend: time.Now()}
-	entering <- cli
+	Messages <- who + " has arrived"
+	cli := Client{Ip: who, Name: who, Channel: ch, Conn: conn, LastSend: time.Now()}
+	Entering <- cli
 	var buf [65542]byte
 	result := bytes.NewBuffer(nil)
 	for {
@@ -36,12 +37,12 @@ func handleConn(conn net.Conn) {
 		scanner := bufio.NewScanner(result)
 		scanner.Split(packetSlitFunc)
 		for scanner.Scan() {
-			cli.lastSend = time.Now()
-			messages <- who + ":" + scanner.Text()[6:]
+			cli.LastSend = time.Now()
+			Messages <- who + ":" + scanner.Text()[6:]
 		}
 	}
-	leaving <- cli
-	messages <- who + " has left"
+	Leaving <- cli
+	Messages <- who + " has left"
 
 }
 

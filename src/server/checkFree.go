@@ -1,6 +1,9 @@
 package chat
 
-import "time"
+import (
+	. "server/internal"
+	"time"
+)
 
 /**
 检查空闲客户端
@@ -12,9 +15,9 @@ const closeConnectionMinutes = 5
 func checkFreeAndClose() {
 	//对客户端进行遍历
 	for {
-		clients.Range(func(key, value interface{}) bool {
-			if time.Now().Minute()-value.(client).lastSend.Minute() > closeConnectionMinutes {
-				leaving <- value.(client)
+		Clients.Range(func(key, value interface{}) bool {
+			if time.Now().Minute()-value.(Client).LastSend.Minute() > closeConnectionMinutes {
+				Leaving <- value.(Client)
 			}
 			return true
 		})
