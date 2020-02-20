@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"time"
@@ -22,20 +23,26 @@ func main() {
 	}
 	fmt.Printf("输入信息:")
 	scanner := bufio.NewScanner(os.Stdin)
+	go AcceptEnter(conn)
 	for scanner.Scan() {
 		text := scanner.Text()
 		err := writeMessage(text, conn)
 		if err != nil {
 			fmt.Println("发送错误:", err)
+			os.Exit(-1)
 		}
 		fmt.Printf("输入信息:")
 	}
 }
 
+func AcceptEnter(conn net.Conn) {
+	io.Copy(os.Stdout, conn)
+}
+
 func writeMessage(content string, conn net.Conn) (err error) {
 	buf := createPackage()
-	length := make([]byte, 4)
-	binary.BigEndian.PutUint32(length, uint32(len(content)))
+	length := make([]byte, 2)
+	binary.BigEndian.PutUint16(length, uint16(len(content)))
 	buf.Write(length)
 	buf.Write([]byte(content))
 	_, err = conn.Write(buf.Bytes())
