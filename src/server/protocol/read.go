@@ -28,21 +28,26 @@ func packetSlitFunc(data []byte, atEOF bool) (advance int, token []byte, err err
 	return
 }
 
+func ReadFromPackage(buf []byte) string {
+	result := bytes.NewBuffer(nil)
+	scanner := bufio.NewScanner(bytes.NewReader(buf))
+	scanner.Split(packetSlitFunc)
+	for scanner.Scan() {
+		result.Write(scanner.Bytes())
+	}
+	return result.String()[6:]
+}
+
 func AcceptEnter(conn net.Conn, Messages chan string, cli Client) {
 	var buf [65542]byte
-	result := bytes.NewBuffer(nil)
 	for {
 		n, err := conn.Read(buf[0:])
-		result.Write(buf[0:n])
+		content := ReadFromPackage(buf[0:n])
 		if err != nil && err != io.EOF {
 			fmt.Println("传输数据错误:", err)
 			break
 		}
-		scanner := bufio.NewScanner(result)
-		scanner.Split(packetSlitFunc)
-		for scanner.Scan() {
-			cli.LastSend = time.Now()
-			Messages <- cli.Ip + ":" + scanner.Text()[6:]
-		}
+		cli.LastSend = time.Now()
+		Messages <- cli.Name + ":" + content
 	}
 }
