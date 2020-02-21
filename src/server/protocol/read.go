@@ -38,15 +38,25 @@ func ReadFromPackage(buf []byte) string {
 	return result.String()[6:]
 }
 
+// 只读取一条消息,并返回字符串与错误
+func ReadOneMessage(conn net.Conn) (string, error) {
+	var buf [65542]byte
+	n, err := conn.Read(buf[0:])
+	if err != nil && err != io.EOF {
+		return "", nil
+	}
+	return ReadFromPackage(buf[0:n]), nil
+}
+
 func AcceptEnter(conn net.Conn, Messages chan string, cli Client) {
 	var buf [65542]byte
 	for {
 		n, err := conn.Read(buf[0:])
-		content := ReadFromPackage(buf[0:n])
 		if err != nil && err != io.EOF {
 			fmt.Println("传输数据错误:", err)
 			break
 		}
+		content := ReadFromPackage(buf[0:n])
 		cli.LastSend = time.Now()
 		Messages <- cli.Name + ":" + content
 	}

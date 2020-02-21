@@ -2,6 +2,7 @@ package chat
 
 import (
 	"net"
+	. "server/handlers"
 	. "server/internal"
 	"server/protocol"
 )
@@ -14,12 +15,10 @@ date:2020/2/15
 func handleConn(conn net.Conn) {
 	cli := NewClient(conn.RemoteAddr().String(), conn)
 	go clientWriter(cli)
-
-	Messages <- cli.Ip + " has arrived"
-	Entering <- *cli
-	protocol.AcceptEnter(conn, Messages, *cli)
+	HandleLogin(cli)
+	protocol.AcceptEnter(conn, BroadCaster, *cli)
 	Leaving <- *cli
-	Messages <- cli.Ip + " has left"
+	BroadCaster <- cli.Ip + " has left"
 }
 
 func clientWriter(cli *Client) {

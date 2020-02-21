@@ -28,7 +28,7 @@ type Client struct {
 const (
 	NotLoggedIn = iota // 未登录
 	LoggedIn           // 已经登录
-	Exited             // 已经退出
+	Exited             // 已经退出,或者登录失败也会转移到这个状态
 	Registering        // 未注册
 )
 
@@ -38,6 +38,7 @@ func NewClient(name string, conn net.Conn) (cli *Client) {
 		Number:   conn.RemoteAddr().String(),
 		Name:     name,
 		Channel:  make(chan string, clientChannelBufferSize),
+		State:    NotLoggedIn,
 		Conn:     conn,
 		LastSend: time.Now(),
 	}
