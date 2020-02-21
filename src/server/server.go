@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"server/handlers"
 	. "server/internal"
 )
 
@@ -21,8 +22,8 @@ func Serve(port int) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	go broadcaster()
-	go checkFreeAndClose()
+	go handlers.HandleEvent()
+	go checkValidAndClose()
 	for {
 		conn, err := listener.Accept()
 		if err != nil {

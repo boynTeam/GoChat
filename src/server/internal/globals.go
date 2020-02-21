@@ -6,8 +6,8 @@ import "sync"
 // Date:2020/2/20
 
 var (
-	Entering = make(chan Client) // 监控客户端进入的消息
-	Leaving  = make(chan Client) // 监控客户端离开的消息
-	Messages = make(chan string) // 掌握所有客户端发出的消息
-	Clients  sync.Map            //掌握所有客户端消息
+	Entering    = make(chan Client) // 监控客户端进入的消息
+	Leaving     = make(chan Client) // 监控客户端离开的消息
+	BroadCaster = make(chan string) // 广播器,将传入广播器通道的消息传到所有活跃的客户端中
+	Clients     sync.Map            //掌握所有客户端消息
 )

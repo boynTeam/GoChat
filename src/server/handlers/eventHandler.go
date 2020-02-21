@@ -1,4 +1,4 @@
-package chat
+package handlers
 
 import (
 	"log"
@@ -6,17 +6,22 @@ import (
 )
 
 /**
+事件循环处理器
+使用select来循环事件
 author:Boyn
 date:2020/2/15
 */
 
-func broadcaster() {
+func HandleEvent() {
 	for {
 		select {
-		case msg := <-Messages:
+		case msg := <-BroadCaster:
 			log.Println(msg)
 			Clients.Range(func(k, v interface{}) bool {
-				v.(Client).Channel <- msg
+				cli := v.(Client)
+				if cli.State == LoggedIn {
+					cli.Channel <- msg
+				}
 				return true
 			})
 		case cli := <-Entering:
