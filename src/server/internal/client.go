@@ -13,6 +13,7 @@ import (
 author:Boyn
 date:2020/2/18
 */
+const clientChannelBufferSize = 10
 
 type Client struct {
 	Ip       string      //客户端的ip
@@ -20,4 +21,14 @@ type Client struct {
 	Channel  chan string //用于收发客户端的消息
 	Conn     net.Conn    // 客户端的TCP连接
 	LastSend time.Time
+}
+
+func NewClient(name string, conn net.Conn) (cli *Client) {
+	return &Client{
+		Ip:       conn.RemoteAddr().String(),
+		Name:     name,
+		Channel:  make(chan string, clientChannelBufferSize),
+		Conn:     conn,
+		LastSend: time.Now(),
+	}
 }
