@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"os"
 )
 
 // Author:Boyn
@@ -34,7 +35,7 @@ func ResolveMessage(conn net.Conn, output chan string) {
 		result.Write(buf[0:n])
 		if err != nil && err != io.EOF {
 			fmt.Println("传输数据错误:", err)
-			break
+			os.Exit(1)
 		}
 		scanner := bufio.NewScanner(result)
 		scanner.Split(packetSlitFunc)

@@ -19,6 +19,7 @@ func main() {
 	conn, err := connect("localhost:8009")
 	if err != nil {
 		fmt.Println("连接错误:", err)
+		os.Exit(-1)
 	}
 	fmt.Printf("输入信息:")
 	scanner := bufio.NewScanner(os.Stdin)
