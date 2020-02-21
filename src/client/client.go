@@ -2,8 +2,7 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"encoding/binary"
+	"client/protocol"
 	"fmt"
 	"io"
 	"net"
@@ -23,10 +22,10 @@ func main() {
 	}
 	fmt.Printf("输入信息:")
 	scanner := bufio.NewScanner(os.Stdin)
-	go AcceptEnter(conn)
+	go AcceptEnter(conn, os.Stdout)
 	for scanner.Scan() {
 		text := scanner.Text()
-		err := writeMessage(text, conn)
+		err := protocol.WriteMessage(text, conn)
 		if err != nil {
 			fmt.Println("发送错误:", err)
 			os.Exit(-1)
@@ -35,30 +34,19 @@ func main() {
 	}
 }
 
-func AcceptEnter(conn net.Conn) {
-	io.Copy(os.Stdout, conn)
-}
-
-func writeMessage(content string, conn net.Conn) (err error) {
-	buf := createPackage()
-	length := make([]byte, 2)
-	binary.BigEndian.PutUint16(length, uint16(len(content)))
-	buf.Write(length)
-	buf.Write([]byte(content))
-	_, err = conn.Write(buf.Bytes())
-	return
+func AcceptEnter(conn net.Conn, output io.Writer) {
+	message := make(chan string)
+	go protocol.ResolveMessage(conn, message)
+	for {
+		select {
+		case msg := <-message:
+			_, _ = fmt.Fprintln(output, msg)
+		}
+	}
 }
 
 func connect(ip string) (net.Conn, error) {
 	// 设置超时时间为30秒
 	dialTimeout, err := net.DialTimeout("tcp", ip, timeout*time.Second)
 	return dialTimeout, err
-}
-
-// 创建一个byte数组,其中已经放好包的部分头部(魔数部分)
-func createPackage() (buf bytes.Buffer) {
-	magicNum := make([]byte, 4)
-	binary.BigEndian.PutUint32(magicNum, 0xABC123)
-	buf.Write(magicNum)
-	return
 }
