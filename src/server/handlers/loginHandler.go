@@ -17,8 +17,8 @@ func HandleLogin(cli *Client) {
 		return
 	}
 	cli.Channel <- "请登录"
-	message, err := protocol.ReadOneMessage(cli.Conn)
-	if err != nil {
+	message, err, valid := protocol.ReadOneMessage(cli.Conn)
+	if err != nil || !valid {
 		fmt.Println("传输数据错误:", err)
 		cli.State = Exited
 		return
