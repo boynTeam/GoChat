@@ -21,11 +21,13 @@ func createPackage() (buf bytes.Buffer) {
 
 // 写入消息
 func WriteMessage(content string, conn net.Conn) (err error) {
+	msg := Message{Content: content}
 	buf := createPackage()
 	length := make([]byte, 2)
-	binary.BigEndian.PutUint16(length, uint16(len(content)))
+	msgJSON, _ := msg.ToJSON()
+	binary.BigEndian.PutUint16(length, uint16(len(msgJSON)))
 	buf.Write(length)
-	buf.Write([]byte(content))
+	buf.Write(msgJSON)
 	_, err = conn.Write(buf.Bytes())
 	return
 }

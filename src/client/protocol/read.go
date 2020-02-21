@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -28,26 +29,38 @@ func packetSlitFunc(data []byte, atEOF bool) (advance int, token []byte, err err
 	return
 }
 
-func ResolveMessage(conn net.Conn, output chan string) {
+func ResolveMessage(conn net.Conn, output chan Message) {
 	var buf [65542]byte
-	result := bytes.NewBuffer(nil)
 	for {
 		n, err := conn.Read(buf[0:])
 		// 如果包格式不合格,就进行下次循环而不会继续进行处理
 		if !isPackageValid(buf[0:n]) {
 			continue
 		}
-		result.Write(buf[0:n])
+
 		if err != nil && err != io.EOF {
 			fmt.Println("传输数据错误:", err)
 			os.Exit(1)
 		}
-		scanner := bufio.NewScanner(result)
+		scanner := bufio.NewScanner(bytes.NewReader(buf[0:n]))
 		scanner.Split(packetSlitFunc)
+		result := bytes.NewBuffer(nil)
 		for scanner.Scan() {
-			output <- scanner.Text()[6:]
+			result.Write(scanner.Bytes())
 		}
+		message, err := parseMessageFromJSON(result.Bytes()[6:])
+		if err != nil {
+			fmt.Println("解析错误:", err)
+			continue
+		}
+		output <- message
 	}
+}
+
+func parseMessageFromJSON(content []byte) (Message, error) {
+	msg := Message{}
+	err := json.Unmarshal(content, &msg)
+	return msg, err
 }
 
 func isPackageValid(data []byte) bool {

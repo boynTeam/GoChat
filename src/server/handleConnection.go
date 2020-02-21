@@ -18,11 +18,11 @@ func handleConn(conn net.Conn) {
 	HandleLogin(cli)
 	protocol.AcceptEnter(conn, BroadCaster, *cli)
 	Leaving <- *cli
-	BroadCaster <- cli.Ip + " has left"
+	BroadCaster <- Message{Content: cli.Ip + " has left"}
 }
 
 func clientWriter(cli *Client) {
 	for msg := range cli.Channel {
-		_ = protocol.WriteMessage(msg, cli.Conn)
+		_ = protocol.WriteMessage(msg.Content, cli.Conn)
 	}
 }

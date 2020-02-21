@@ -36,12 +36,12 @@ func main() {
 }
 
 func AcceptEnter(conn net.Conn, output io.Writer) {
-	message := make(chan string)
+	message := make(chan protocol.Message)
 	go protocol.ResolveMessage(conn, message)
 	for {
 		select {
 		case msg := <-message:
-			_, _ = fmt.Fprintln(output, msg)
+			_, _ = fmt.Fprintln(output, msg.Content)
 		}
 	}
 }

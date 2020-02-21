@@ -16,12 +16,12 @@ date:2020/2/18
 const clientChannelBufferSize = 10
 
 type Client struct {
-	Ip       string      //客户端的ip
-	Number   string      //客户端的标识码
-	Name     string      //客户端在登录的时候指定的名i在
-	Channel  chan string //用于收发客户端的消息
-	Conn     net.Conn    // 客户端的TCP连接
-	State    int         // 客户端状态
+	Ip       string       //客户端的ip
+	Number   string       //客户端的标识码
+	Name     string       //客户端在登录的时候指定的名i在
+	Channel  chan Message //用于收发客户端的消息
+	Conn     net.Conn     // 客户端的TCP连接
+	State    int          // 客户端状态
 	LastSend time.Time
 }
 
@@ -37,7 +37,7 @@ func NewClient(name string, conn net.Conn) (cli *Client) {
 		Ip:       conn.RemoteAddr().String(),
 		Number:   conn.RemoteAddr().String(),
 		Name:     name,
-		Channel:  make(chan string, clientChannelBufferSize),
+		Channel:  make(chan Message, clientChannelBufferSize),
 		State:    NotLoggedIn,
 		Conn:     conn,
 		LastSend: time.Now(),

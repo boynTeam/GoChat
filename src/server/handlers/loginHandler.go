@@ -16,7 +16,7 @@ func HandleLogin(cli *Client) {
 	if cli.State != NotLoggedIn {
 		return
 	}
-	cli.Channel <- "请登录"
+	cli.Channel <- Message{Content: "请登录"}
 	message, err, valid := protocol.ReadOneMessage(cli.Conn)
 	if err != nil || !valid {
 		fmt.Println("传输数据错误:", err)
@@ -24,9 +24,9 @@ func HandleLogin(cli *Client) {
 		return
 	}
 	cli.State = LoggedIn
-	cli.Name = message
-	cli.Channel <- "登录成功"
-	BroadCaster <- cli.Ip + " has arrived"
+	cli.Name = message.Content
+	cli.Channel <- Message{Content: "登录成功"}
+	BroadCaster <- Message{Content: cli.Name + "Has Arrived"}
 	Entering <- *cli
 	return
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -16,7 +17,7 @@ const magicNumber = 0xABC123
 // Author:Boyn
 // Date:2020/2/21
 
-func AcceptEnter(conn net.Conn, Messages chan string, cli Client) {
+func AcceptEnter(conn net.Conn, Messages chan Message, cli Client) {
 	for {
 		message, err, isValid := ReadOneMessage(conn)
 		if err != nil {
@@ -29,16 +30,16 @@ func AcceptEnter(conn net.Conn, Messages chan string, cli Client) {
 			continue
 		}
 		cli.LastSend = time.Now()
-		Messages <- cli.Name + ":" + message
+		Messages <- message
 	}
 }
 
 // 只读取一条消息,并返回字符串与错误
-func ReadOneMessage(conn net.Conn) (string, error, bool) {
+func ReadOneMessage(conn net.Conn) (Message, error, bool) {
 	var buf [65542]byte
 	n, err := conn.Read(buf[0:])
 	if err != nil && err != io.EOF {
-		return "", err, false
+		return Message{}, err, false
 	}
 	content, valid := readFromPackage(buf[0:n])
 	return content, nil, valid
@@ -58,17 +59,24 @@ func packetSlitFunc(data []byte, atEOF bool) (advance int, token []byte, err err
 	return
 }
 
-func readFromPackage(buf []byte) (string, bool) {
+func readFromPackage(buf []byte) (Message, bool) {
 	result := bytes.NewBuffer(nil)
 	scanner := bufio.NewScanner(bytes.NewReader(buf))
 	if !isPackageValid(buf) {
-		return "", false
+		return Message{}, false
 	}
 	scanner.Split(packetSlitFunc)
 	for scanner.Scan() {
 		result.Write(scanner.Bytes())
 	}
-	return result.String()[6:], true
+	msgJSON, _ := parseMessageFromJSON(result.Bytes()[6:])
+	return msgJSON, true
+}
+
+func parseMessageFromJSON(content []byte) (Message, error) {
+	msg := Message{}
+	err := json.Unmarshal(content, &msg)
+	return msg, err
 }
 
 func isPackageValid(data []byte) bool {
