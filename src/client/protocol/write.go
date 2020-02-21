@@ -3,7 +3,7 @@ package protocol
 import (
 	"bytes"
 	"encoding/binary"
-	"net"
+	"time"
 )
 
 // Author:Boyn
@@ -20,14 +20,14 @@ func createPackage() (buf bytes.Buffer) {
 }
 
 // 写入消息
-func WriteMessage(content string, conn net.Conn) (err error) {
-	msg := Message{Content: content}
+func WriteMessage(content string, cli Client) (err error) {
+	msg := Message{Content: content, Time: time.Now().String(), User: cli.Name, State: cli.State}
 	buf := createPackage()
 	length := make([]byte, 2)
 	msgJSON, _ := msg.ToJSON()
 	binary.BigEndian.PutUint16(length, uint16(len(msgJSON)))
 	buf.Write(length)
 	buf.Write(msgJSON)
-	_, err = conn.Write(buf.Bytes())
+	_, err = cli.Conn.Write(buf.Bytes())
 	return
 }

@@ -21,8 +21,7 @@ func createPackage() (buf bytes.Buffer) {
 }
 
 // 写入消息
-func WriteMessage(content string, conn net.Conn) (err error) {
-	msg := Message{Content: content}
+func WriteMessage(msg Message, conn net.Conn) (err error) {
 	buf := createPackage()
 	length := make([]byte, 2)
 	msgJSON, _ := msg.ToJSON()

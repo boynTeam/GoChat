@@ -5,6 +5,7 @@ import (
 	. "server/handlers"
 	. "server/internal"
 	"server/protocol"
+	"time"
 )
 
 /**
@@ -18,11 +19,11 @@ func handleConn(conn net.Conn) {
 	HandleLogin(cli)
 	protocol.AcceptEnter(conn, BroadCaster, *cli)
 	Leaving <- *cli
-	BroadCaster <- Message{Content: cli.Ip + " has left"}
+	BroadCaster <- Message{Content: cli.Ip + " has left", User: "Server", Time: time.Now().String(), State: Exited}
 }
 
 func clientWriter(cli *Client) {
 	for msg := range cli.Channel {
-		_ = protocol.WriteMessage(msg.Content, cli.Conn)
+		_ = protocol.WriteMessage(msg, cli.Conn)
 	}
 }

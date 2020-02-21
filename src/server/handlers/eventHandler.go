@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	. "server/internal"
+	"strings"
 )
 
 /**
@@ -19,7 +20,8 @@ func HandleEvent() {
 			log.Println(msg)
 			Clients.Range(func(k, v interface{}) bool {
 				cli := v.(Client)
-				if cli.State == LoggedIn {
+				// 发送到已经登录的用户,且去掉发送者
+				if cli.State == LoggedIn && strings.Compare(cli.Name, msg.User) != 0 {
 					cli.Channel <- msg
 				}
 				return true

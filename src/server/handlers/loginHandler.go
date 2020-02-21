@@ -4,6 +4,7 @@ import (
 	"fmt"
 	. "server/internal"
 	"server/protocol"
+	"time"
 )
 
 // Author:Boyn
@@ -16,7 +17,7 @@ func HandleLogin(cli *Client) {
 	if cli.State != NotLoggedIn {
 		return
 	}
-	cli.Channel <- Message{Content: "请登录"}
+	cli.Channel <- Message{Content: "请登录", User: "Server", Time: time.Now().String(), State: NotLoggedIn}
 	message, err, valid := protocol.ReadOneMessage(cli.Conn)
 	if err != nil || !valid {
 		fmt.Println("传输数据错误:", err)
@@ -25,8 +26,8 @@ func HandleLogin(cli *Client) {
 	}
 	cli.State = LoggedIn
 	cli.Name = message.Content
-	cli.Channel <- Message{Content: "登录成功"}
-	BroadCaster <- Message{Content: cli.Name + "Has Arrived"}
+	cli.Channel <- Message{Content: message.Content, User: "Server", Time: time.Now().String(), State: LoginSuccess}
+	BroadCaster <- Message{Content: cli.Name + " Has Arrived", User: "Server", Time: time.Now().String(), State: LoggedIn}
 	Entering <- *cli
 	return
 }

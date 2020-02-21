@@ -2,9 +2,8 @@ package main
 
 import (
 	"bufio"
-	"client/protocol"
+	. "client/protocol"
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"time"
@@ -12,6 +11,9 @@ import (
 
 // Author:Boyn
 // Date:2020/2/20
+
+// 本地客户端
+var cli = Client{State: NotLoggedIn}
 
 const timeout = 30
 
@@ -21,28 +23,39 @@ func main() {
 		fmt.Println("连接错误:", err)
 		os.Exit(-1)
 	}
-	fmt.Printf("输入信息:")
+	cli.Conn = conn
 	scanner := bufio.NewScanner(os.Stdin)
-	go AcceptEnter(conn, os.Stdout)
+	go AcceptEnter(conn)
 	for scanner.Scan() {
 		text := scanner.Text()
-		err := protocol.WriteMessage(text, conn)
+		err := WriteMessage(text, cli)
 		if err != nil {
 			fmt.Println("发送错误:", err)
 			os.Exit(-1)
 		}
-		fmt.Printf("输入信息:")
 	}
 }
 
-func AcceptEnter(conn net.Conn, output io.Writer) {
-	message := make(chan protocol.Message)
-	go protocol.ResolveMessage(conn, message)
+func AcceptEnter(conn net.Conn) {
+	message := make(chan Message)
+	go ResolveMessage(conn, message)
 	for {
 		select {
 		case msg := <-message:
-			_, _ = fmt.Fprintln(output, msg.Content)
+			handleMessage(msg)
 		}
+	}
+}
+
+func handleMessage(msg Message) {
+	if cli.State == NotLoggedIn && msg.State == LoginSuccess {
+		cli.State = LoggedIn
+		cli.Name = msg.Content
+		fmt.Println("登录成功,欢迎回来.", msg.Content)
+	} else if cli.State == NotLoggedIn {
+		fmt.Println("未登录:请输入账号")
+	} else if cli.State == LoggedIn {
+		fmt.Printf("%s %s\n%s\n", msg.User, msg.Time, msg.Content)
 	}
 }
 
